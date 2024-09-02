@@ -37,7 +37,7 @@ module.exports = {
 
             const embed = new EmbedBuilder()
             .setTitle(`Painel bate-ponto`)
-            .setDescription(`Teste bate-ponto`)
+            .setDescription(`bate-ponto`)
             .setColor("#2B2D31")
             const buttonInit = new ButtonBuilder()
             .setCustomId(`buttonInit`)
