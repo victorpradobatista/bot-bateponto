@@ -1,0 +1,11 @@
+{
+    "token":"MTI3Njk1ODI3MjE2NjgyMjAxMg.GC_glC.XzDUUjuoTq4QW5aAp3SwuHRBhw4gcEgO_-0sFs",
+
+    "ip":"127.0.0.1",
+    "porta":"3306",
+    "databasename":"bot",
+    "user":"root",
+    "password":"",
+
+    "color":"#2B2D31"
+}
