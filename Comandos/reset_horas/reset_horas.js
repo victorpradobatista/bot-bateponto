@@ -28,7 +28,7 @@ module.exports = {
             d.query('UPDATE bateponto SET tempototal =  0')
 
             const success = new Discord.EmbedBuilder()
-            .setDescription(`<:Ativo:1142030710253813780> **|** Canais **DEFINIDOS** com sucesso.`)
+            .setDescription(`<:Ativo:1142030710253813780> **|** Horas **RESETADAS** com sucesso.`)
             .setColor('#48CC73')
 
             interaction.reply({embeds:[success]})

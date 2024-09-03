@@ -58,10 +58,17 @@ module.exports = async (client, interaction) => {
             const d = connect()
             const querySelect1 = `SELECT * FROM bateponto WHERE id = '${interaction.user.id}'`
             const queryUpdate3 = `UPDATE bateponto SET tempoinc = 0 WHERE id = '${interaction.user.id}'`
+            d.query(`SELECT * FROM bateponto WHERE id = '${interaction.user.id}'`, function(errConfig, resultConfig){
+            d.query(`SELECT * FROM cargos WHERE cargoEmServico = '${resultConfig[0].cargo}'`, function(errCargos, resultCargos){
+            d.query(`SELECT * FROM vrp_permissions WHERE user_id = '${resultConfig[0].idIngame}'`, function(err, resultIngame) {
             d.query(querySelect1, function(err, result) {
                 if(err) throw err;
                 if(result == false) {
-                    interaction.reply({content: `Seu ponto não está iniciado!`, ephemeral: true})
+                    const embedError2 = new EmbedBuilder()
+                    .setColor('#313338')
+                    .setDescription(`<a:negado:1142675449751814275> Você ainda não se encontra de serviço, ou seja, não poderá terminar o seu expediente.`)
+                    
+                    interaction.reply({embeds: [embedError2], ephemeral: true})
                 } else if(result[0].btinit == 'true') {
                     const tempoAgora = new Date().getTime()
                     const tempoConta = result[0].tempoinc
@@ -86,28 +93,43 @@ module.exports = async (client, interaction) => {
                         if(err) throw err;  
                         d.query(selectLog2, function(errLog, resultLog) {
                             
-                        const tempoAgora = new Date().getTime()
-                        const tempoConta = resultLog[0].tempoinc
-                        const total = (tempoAgora - parseInt(tempoConta))
-                        console.log('Total Final: ' + total)
+                        // const tempoAgora = new Date().getTime()
+                        // const tempoConta = resultLog[0].tempoinc
+                        // const total = (tempoAgora - parseInt(tempoConta))
+                        // console.log('Total Final: ' + total)
                         const membro = interaction.guild.members.cache.get(interaction.user.id)
                         const CargoEmServico = interaction.guild.roles.cache.get(result3[0].id)
                         const CargoForaDeServico = interaction.guild.roles.cache.get(result2[0].id)
                         membro.roles.add(CargoForaDeServico).then(() => {
                             membro.roles.remove(CargoEmServico)
                         })
-                        const now = new Date();
-                        const day = now.getDate(); // Dia do mês
-                        const hours = now.getHours(); // Horas
-                        const minutes = now.getMinutes(); // Minutos
-                        const seconds = now.getSeconds(); // Segundos
 
-                        const formattedDay = day.toString().padStart(2, '0');
-                        const formattedHours = hours.toString().padStart(2, '0');
-                        const formattedMinutes = minutes.toString().padStart(2, '0');
-                        const formattedSeconds = seconds.toString().padStart(2, '0');
+                        if(resultIngame[0].permiss) {
+                            d.query(`SELECT * FROM cargos WHERE CargoServico = '${resultIngame[0].permiss}'`, function(err, resultDisc){
+                                if(resultDisc == false) {
+                                    const embedErr = new EmbedBuilder()
+                                    .setColor(config.color)
+                                    .setDescription('O seu cargo não existe in-game')
+                                    interaction.user.send({embeds:[embedErr]})
+                                } else {
+                                    d.query(`UPDATE vrp_permissions SET permiss = '${resultDisc[0].CargoForaServico}' WHERE user_id = '${resultConfig[0].idIngame}'`)
+                                    console.log('Executado com sucesso!')
+                                }
+                            }) 
+                        }
+                        const date = new Date();
 
-                        const timeString = `${formattedHours}:${formattedMinutes}:${formattedSeconds}`;
+                        const months = [
+                          "janeiro", "fevereiro", "março", "abril", "maio", "junho",
+                          "julho", "agosto", "setembro", "outubro", "novembro", "dezembro"
+                        ];
+                        
+                        const day = date.getDate();
+                        const month = months[date.getMonth()];
+                        const hours = date.getHours().toString().padStart(2, '0'); // Adiciona zero à esquerda se necessário
+                        const minutes = date.getMinutes().toString().padStart(2, '0'); // Adiciona zero à esquerda se necessário
+                        
+                        const timeString = `${day} de ${month} às ${hours}:${minutes}`;
 
                             const embedTeste = new EmbedBuilder()
                             .setTitle(`📤 Sistema de controle de serviço`)
@@ -135,11 +157,18 @@ module.exports = async (client, interaction) => {
                 })
             })
                 } else {
-                    interaction.reply({content: `Seu ponto não está iniciado!`, ephemeral: true})
+                    const embedError2 = new EmbedBuilder()
+                    .setColor('#313338')
+                    .setDescription(`<a:negado:1142675449751814275> Você ainda não se encontra de serviço, ou seja, não poderá terminar o seu expediente.`)
+                    
+                    interaction.reply({embeds: [embedError2], ephemeral: true})
                 }
         
             })
+        })
+    })
             
+})
         }
         if(interaction.customId == 'buttonVerify') {
             const d = connect()
@@ -161,6 +190,8 @@ module.exports = async (client, interaction) => {
             const d = connect()
             const selectLog = `SELECT * FROM logs WHERE tipo = 'cargo_em_servico'`
             const selectLog2 = `SELECT * FROM logs WHERE tipo = 'cargo_fora_servico'`
+            d.query(`SELECT * FROM bateponto WHERE id = '${interaction.user.id}'`, function(errConfig, resultConfig){
+            d.query(`SELECT * FROM cargos WHERE cargoEmServico = '${resultConfig[0].cargo}'`, function(errCargos, resultCargos){
             d.query(selectLog2, function(err, result2) {
             d.query(selectLog, function(err, result3) {
                 
@@ -171,9 +202,9 @@ module.exports = async (client, interaction) => {
                 if (err) throw err;
                 if(result == false) {
                     interaction.reply({content: `Conta criada!`, ephemeral: true})
-                    const queryInsert = `INSERT INTO bateponto (id, tempo, entrou, tempototal, tempoinc, btinit, mensagemid) VALUES ('${interaction.user.id}', '0', 'N/A', '0', 'N/A', 'false', 'N/A')`
+                    const queryInsert = `INSERT INTO bateponto (id, tempo, entrou, tempototal, tempoinc, btinit, mensagemid, horarioformatado, cargo, idIngame) VALUES ('${interaction.user.id}', '0', 'N/A', '0', 'N/A', 'false', 'N/A', '0', 'N/A', 'N/A')`
                     d.query(queryInsert)
-                } else if(result[0].btinit == 'false'){
+                } else if(result[0].btinit == 'false' && result[0].cargo != 'N/A'){
                     const d = connect()
                     const currentTime = new Date().getTime()
                     const queryUpdate = `UPDATE bateponto SET tempoinc = '${currentTime}' WHERE id = '${interaction.user.id}'`
@@ -181,7 +212,32 @@ module.exports = async (client, interaction) => {
                     
                     d.query(queryUpdate)
                     d.query(queryUpdate2)
-                    interaction.reply({content:'Bate-ponto iniciado!', ephemeral: true})
+                    d.query(`SELECT * FROM vrp_permissions WHERE user_id = '${resultConfig[0].idIngame}'`, function(err, resultIngame) {
+
+                    const date = new Date();
+
+                    const months = [
+                    "janeiro", "fevereiro", "março", "abril", "maio", "junho",
+                    "julho", "agosto", "setembro", "outubro", "novembro", "dezembro"
+                    ];
+
+                
+                    const day = date.getDate();
+                    const month = months[date.getMonth()];
+                    const hours = date.getHours().toString().padStart(2, '0'); 
+                    const minutes = date.getMinutes().toString().padStart(2, '0'); 
+
+                    const timeString = `${day} de ${month} às ${hours}:${minutes}`;
+
+
+                    const embedE = new EmbedBuilder()
+                    .setTitle(`📥 Ponto iniciado!`)
+                    .setDescription(`**<:emojipessoabranco:1142035599105216512> | Usuário:**\n> <@${interaction.user.id}> / ${interaction.user.username}#${interaction.user.discriminator} \n\n**<a:data:1142034461928718337> | Iniciou o ponto:** \n> ${timeString} \n\n**📤 | Finalizou o ponto:**\n> <a:loading:1141775790518833263>\n\n**⏰ | Tempo de Expediente:**\n> <a:loading:1141775790518833263>`)
+                    .setColor('#77B255')
+                    .setThumbnail(interaction.user.displayAvatarURL({ dinamyc: true, size: 2048, format: 'png' }))
+                    .setFooter({ iconURL: interaction.guild.iconURL({ dynamic: true }), text: (`${interaction.guild.name} - Todos os direitos reservados.`) })
+
+                    interaction.reply({embeds:[embedE], ephemeral: true})
                     const membro = interaction.guild.members.cache.get(interaction.user.id)
 
                     const CargoEmServico = interaction.guild.roles.cache.get(result3[0].id)
@@ -191,24 +247,38 @@ module.exports = async (client, interaction) => {
                         membro.roles.remove(CargoForaDeServico)
                     })
                     console.log('Cargo Adicionado')
+
+                    if(resultIngame[0].permiss) {
+                        d.query(`SELECT * FROM cargos WHERE CargoForaServico = '${resultIngame[0].permiss}'`, function(err, resultDisc){
+                            console.log(resultDisc)
+                            if(resultDisc == false) {
+                                const embedErr = new EmbedBuilder()
+                                .setColor(config.color)
+                                .setDescription('O seu cargo não existe in-game')
+                                interaction.user.send({embeds:[embedErr]})
+                            } else {
+                                d.query(`UPDATE vrp_permissions SET permiss = '${resultDisc[0].CargoServico}' WHERE user_id = '${resultConfig[0].idIngame}'`)
+                                console.log('Executado com sucesso!')
+                            }
+                        }) 
+                    }
                     
                     d.query(`SELECT * FROM logs WHERE tipo = 'bate-ponto'`, function(err, resultLog) {
                         if(err) throw err;
                         const channelLog = interaction.guild.channels.cache.get(resultLog[0].id)
-                        const now = new Date();
+                        const date = new Date();
 
-
-                        const day = now.getDate(); // Dia do mês
-                        const hours = now.getHours(); // Horas
-                        const minutes = now.getMinutes(); // Minutos
-                        const seconds = now.getSeconds(); // Segundos
-
-                        const formattedDay = day.toString().padStart(2, '0');
-                        const formattedHours = hours.toString().padStart(2, '0');
-                        const formattedMinutes = minutes.toString().padStart(2, '0');
-                        const formattedSeconds = seconds.toString().padStart(2, '0');
-
-                        const timeString = `${formattedHours}:${formattedMinutes}:${formattedSeconds}`;
+                        const months = [
+                          "janeiro", "fevereiro", "março", "abril", "maio", "junho",
+                          "julho", "agosto", "setembro", "outubro", "novembro", "dezembro"
+                        ];
+                        
+                        const day = date.getDate();
+                        const month = months[date.getMonth()];
+                        const hours = date.getHours().toString().padStart(2, '0'); // Adiciona zero à esquerda se necessário
+                        const minutes = date.getMinutes().toString().padStart(2, '0'); // Adiciona zero à esquerda se necessário
+                        
+                        const timeString = `${day} de ${month} às ${hours}:${minutes}`;
 
                         const updateTime = `UPDATE bateponto SET horarioformatado = '${timeString}' WHERE id = '${interaction.user.id}'`
 
@@ -225,13 +295,28 @@ module.exports = async (client, interaction) => {
                             d.query(`UPDATE bateponto SET mensagemid = '${message.id}' WHERE id = '${interaction.user.id}'`)
                         })
                     })
+                })
+                } else if(result[0].cargo == 'N/A') { 
+                    interaction.reply({content:`Você não tem nenhum cargo setado, peça a um superior.`, ephemeral: true})
                 } else {
-                    interaction.reply({content:'Bate-ponto já iniciado!', ephemeral: true})
+                    const d = connect()
+
+                    d.query(`SELECT * FROM bateponto WHERE id = '${interaction.user.id}'`, function(err, result) {
+                    if(err) throw err;
+                    const embedError = new EmbedBuilder()
+                    .setColor('#313338')
+                    .setDescription(`<a:negado:1142675449751814275> Você já se encontra de serviço, neste momento.\n\n<a:data:1142034461928718337> **Início de expediente:** ${result[0].horarioformatado}.`)
+
+                    interaction.reply({embeds:[embedError], ephemeral: true})
+                })
                 }
             })
         })
     })
-        }
+})
+})
+}
+
 
         if (interaction.customId == 'listTrue') {
             const d = connect();

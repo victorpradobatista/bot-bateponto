@@ -23,9 +23,9 @@ client.on('interactionCreate', (interaction) => {
 client.on('ready', () => {
     console.log(`Olá! Bot Comunidade | ${client.user.username}!`)
     const activitiest = [
-     {name:"f", status:'idle'},
-     {name:"f", status:'idle'},
-     {name:"f", status:'idle'}
+     {name:"desenvolvido by jayapic", status:'idle'},
+     {name:"desenvolvido by jayapic", status:'idle'},
+     {name:"desenvolvido by jayapic", status:'idle'}
     ]
     let i = 0
     setInterval(() => {
@@ -43,6 +43,7 @@ client.slashCommands = new Discord.Collection()
 require('./handler/handler.js')(client)
 require('./database/database.js')
 require('./Events/interactionCreate.js')(client)
+require('./Events/configEvent.js')(client)
 
 process.on("uncaughtException", (err) => {
     console.log("Uncaught Exception: " + err);
