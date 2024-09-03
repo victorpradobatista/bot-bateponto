@@ -64,7 +64,7 @@ module.exports = {
                 embed.addFields({ name: `Top ${index + 1}`, value: `<@${userId}> Tempo Total: ${userTime}`, inline: false });
             });
 
-            interaction.reply({ embeds: [embed] });
+            interaction.reply({ embeds: [embed], ephemeral: true});
         });
     }
 };
