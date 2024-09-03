@@ -32,41 +32,45 @@ module.exports = {
             
         }
         if(interaction.member.permissions.has(Discord.PermissionFlagsBits.KickMembers)){
+            const select = `SELECT * FROM logs WHERE tipo = 'bate-ponto'`
 
-            const channel = interaction.options.getChannel('canal')
+            d.query(select, function(err, result) {
+                if(result == false) {
+                    interaction.reply({content: `Você precisa setar o canal de logs primeiro.`, ephemeral: true})
+                } else {
+                    const channel = interaction.options.getChannel('canal')
 
-            const embed = new EmbedBuilder()
-            .setTitle(`Painel bate-ponto`)
-            .setDescription(`bate-ponto`)
-            .setColor("#2B2D31")
-            const buttonInit = new ButtonBuilder()
-            .setCustomId(`buttonInit`)
-            .setEmoji(`🛎`)
-            .setLabel(`iniciar`)
-            .setStyle(ButtonStyle.Primary)
-            const buttonStop = new ButtonBuilder()
-            .setCustomId(`buttonStop`)
-            .setEmoji(`❌`)
-            .setLabel(`Parar`)
-            .setStyle(ButtonStyle.Danger)
-            const buttonVerify = new ButtonBuilder()
-            .setCustomId(`buttonVerify`)
-            .setEmoji(`👀`)
-            .setLabel(`Verificar`)
-            .setStyle(ButtonStyle.Secondary)
-            const listTrue = new ButtonBuilder()
-            .setCustomId(`listTrue`)
-            .setEmoji(`🧾`)
-            .setLabel(`Lista`)
-            .setStyle(ButtonStyle.Secondary)
-
-
-            const row = new ActionRowBuilder().addComponents(buttonInit).addComponents(buttonStop).addComponents(buttonVerify).addComponents(listTrue)
-
-            channel.send({embeds: [embed], components: [row]})
-            
-
-
+                    const embed = new EmbedBuilder()
+                    .setTitle(`Painel bate-ponto`)
+                    .setDescription(`bate-ponto`)
+                    .setColor("#2B2D31")
+                    const buttonInit = new ButtonBuilder()
+                    .setCustomId(`buttonInit`)
+                    .setEmoji(`🛎`)
+                    .setLabel(`iniciar`)
+                    .setStyle(ButtonStyle.Primary)
+                    const buttonStop = new ButtonBuilder()
+                    .setCustomId(`buttonStop`)
+                    .setEmoji(`❌`)
+                    .setLabel(`Parar`)
+                    .setStyle(ButtonStyle.Danger)
+                    const buttonVerify = new ButtonBuilder()
+                    .setCustomId(`buttonVerify`)
+                    .setEmoji(`👀`)
+                    .setLabel(`Verificar`)
+                    .setStyle(ButtonStyle.Secondary)
+                    const listTrue = new ButtonBuilder()
+                    .setCustomId(`listTrue`)
+                    .setEmoji(`🧾`)
+                    .setLabel(`Lista`)
+                    .setStyle(ButtonStyle.Secondary)
+        
+        
+                    const row = new ActionRowBuilder().addComponents(buttonInit).addComponents(buttonStop).addComponents(buttonVerify).addComponents(listTrue)
+        
+                    channel.send({embeds: [embed], components: [row]})
+                }
+            })
             
         }
     }
