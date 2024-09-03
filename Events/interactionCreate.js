@@ -81,8 +81,24 @@ module.exports = async (client, interaction) => {
                     d.query(queryUpdate4)
                     d.query(queryUpdate3)
                     d.query(queryUpdate5)
-                    console.log(total)
-                    interaction.reply({content:`Ponto finalizado, total: ${formatMilliseconds(total)}`, ephemeral: true})
+                    console.log(total)  
+
+                    const date = new Date();
+
+                    const months = [
+                      "janeiro", "fevereiro", "março", "abril", "maio", "junho",
+                      "julho", "agosto", "setembro", "outubro", "novembro", "dezembro"
+                    ];
+                    
+                    const day = date.getDate();
+                    const month = months[date.getMonth()];
+                    const hours = date.getHours().toString().padStart(2, '0'); // Adiciona zero à esquerda se necessário
+                    const minutes = date.getMinutes().toString().padStart(2, '0'); // Adiciona zero à esquerda se necessário
+                    
+                    const timeString = `${day} de ${month} às ${hours}:${minutes}`;
+
+                    const embedFinalizou = new EmbedBuilder().setColor('#313338').setDescription(`:bolinhavermelha:  O seu expediente  acaba de **TERMINOU**.\n\n:data: **Fim de expediente:** ${timeString} \n\n:relogio~3: **Tempo total deste expediente:** ${formatMilliseconds(total)}`)
+                    interaction.reply({embeds:[embedFinalizou], ephemeral: true})
                     const selectLog = `SELECT * FROM logs WHERE tipo = 'cargo_em_servico'`
                     const selectLog2 = `SELECT * FROM logs WHERE tipo = 'cargo_fora_servico'`
                     const selectPrinc = `SELECT * FROM logs WHERE tipo = 'bate-ponto'`
@@ -230,12 +246,7 @@ module.exports = async (client, interaction) => {
                     const timeString = `${day} de ${month} às ${hours}:${minutes}`;
 
 
-                    const embedE = new EmbedBuilder()
-                    .setTitle(`📥 Ponto iniciado!`)
-                    .setDescription(`**<:emojipessoabranco:1142035599105216512> | Usuário:**\n> <@${interaction.user.id}> / ${interaction.user.username}#${interaction.user.discriminator} \n\n**<a:data:1142034461928718337> | Iniciou o ponto:** \n> ${timeString} \n\n**📤 | Finalizou o ponto:**\n> <a:loading:1141775790518833263>\n\n**⏰ | Tempo de Expediente:**\n> <a:loading:1141775790518833263>`)
-                    .setColor('#77B255')
-                    .setThumbnail(interaction.user.displayAvatarURL({ dinamyc: true, size: 2048, format: 'png' }))
-                    .setFooter({ iconURL: interaction.guild.iconURL({ dynamic: true }), text: (`${interaction.guild.name} - Todos os direitos reservados.`) })
+                    const embedE = new EmbedBuilder().setColor('#313338').setDescription(`:snt_ping:  O seu expediente acaba de **INICIAR**.\n\n:data: **Início de expediente:** ${timeString}`)
 
                     interaction.reply({embeds:[embedE], ephemeral: true})
                     const membro = interaction.guild.members.cache.get(interaction.user.id)
@@ -320,34 +331,58 @@ module.exports = async (client, interaction) => {
 
         if (interaction.customId == 'listTrue') {
             const d = connect();
+
+            // Consultas para registros com bate-ponto iniciado (true) e fora de serviço (false)
             const querySelectTrue = `SELECT * FROM bateponto WHERE btinit = 'true'`;
-        
-            d.query(querySelectTrue, function(err, results) {
-                if (err) throw err;
-                
-                if (results.length === 0) {
-                    const embed = new EmbedBuilder()
-                        .setColor('#2B2D31')
-                        .setTitle('Nenhum Registro Encontrado')
-                        .setDescription('Nenhum registro com bate-ponto iniciado foi encontrado.');
-        
-                    interaction.reply({ embeds: [embed], ephemeral: true });
-                } else {
-                    let description = 'Registros com bate-ponto iniciado:\n';
-                    results.forEach(record => {
-                        const tempoAgora = new Date().getTime()
-                        const format = tempoAgora - record.tempoinc
-                        description += `ID: <@${record.id}>\nTempo Inicial: **${formatMilliseconds(format)}**\n\n`;
-                    });
-        
-                    const embed = new EmbedBuilder()
-                        .setColor('#2B2D31')
-                        .setTitle('Registros de Bate-Ponto')
-                        .setDescription(description);
-        
-                    interaction.reply({ embeds: [embed], ephemeral: true });
+            const querySelectFalse = `SELECT id, tempototal FROM bateponto WHERE btinit = 'false'`;
+            
+            // Função para formatar o tempo em milissegundos para uma string legível
+
+            
+            // Função para formatar a descrição dos registros
+            function formatDescription(records, status, useTotal = false) {
+                if (records.length === 0) {
+                    return `Ninguém ${status}`;
                 }
-            })
+            
+                let description = '';
+                records.forEach(record => {
+                    let displayTime;
+                    if (useTotal) {
+                        displayTime = formatMilliseconds(record.tempototal);
+                    } else {
+                        const tempoAgora = new Date().getTime();
+                        const format = tempoAgora - record.tempoinc;
+                        displayTime = formatMilliseconds(format);
+                    }
+                    description += `User: <@${record.id}>\n**Tempo:** ${displayTime}\n\n`;
+                });
+            
+                return description || `**Ninguém ${status}**`;
+            }
+            
+            // Executa ambas as consultas
+            d.query(querySelectTrue, function(err, resultsTrue) {
+                if (err) throw err;
+            
+                d.query(querySelectFalse, function(err, resultsFalse) {
+                    if (err) throw err;
+            
+                    const embed = new EmbedBuilder()
+                        .setColor('#313338')
+                        .setTitle(':lab_tarf: LISTA DE REGISTROS DE BATE-PONTO')
+                        .setDescription(`
+                            :bolinhaverde: **EM SERVIÇO**:\n
+                            ${formatDescription(resultsTrue, 'em serviço')}
+                            
+                            :bolinhavermelha: **FORA DE SERVIÇO**:\n
+                            ${formatDescription(resultsFalse, 'fora de serviço', true)}
+                        `);
+            
+                    interaction.reply({ embeds: [embed], ephemeral: true });
+                });
+            });
+            
         }
     });
 
