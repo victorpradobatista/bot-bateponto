@@ -126,6 +126,7 @@ module.exports = async (client, interaction) => {
                         const membro = interaction.guild.members.cache.get(interaction.user.id)
                         const CargoEmServico = interaction.guild.roles.cache.get(result3[0].id)
                         const CargoForaDeServico = interaction.guild.roles.cache.get(result2[0].id)
+
                         membro.roles.add(CargoForaDeServico).then(() => {
                             membro.roles.remove(CargoEmServico)
                         })
@@ -159,6 +160,7 @@ module.exports = async (client, interaction) => {
                         const inicioDoDia = new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate());
                         const newTInicioDoDia = Math.floor(inicioDoDia.getTime() / 1000);
                         const newTAtual = Math.floor(hoje.getTime() / 1000);
+
 
                             const embedTeste = new EmbedBuilder()
                             .setTitle(`📤 Sistema de controle de serviço`)
@@ -351,11 +353,11 @@ module.exports = async (client, interaction) => {
 
         if (interaction.customId == 'listTrue') {
             const d = connect();
-
             // Consultas para registros com bate-ponto iniciado (true) e fora de serviço (false)
             const querySelectTrue = `SELECT * FROM bateponto WHERE btinit = 'true'`;
             const querySelectFalse = `SELECT id, tempototal FROM bateponto WHERE btinit = 'false'`;
-            
+            const querySelectRolesEmServico = `SELECT * FROM logs WHERE tipo = 'cargo_em_servico'`;
+            const querySelectRolesForaServico = `SELECT * FROM logs WHERE tipo = 'cargo_fora_servico'`;
             // Função para formatar o tempo em milissegundos para uma string legível
 
             
@@ -382,28 +384,35 @@ module.exports = async (client, interaction) => {
             }
             
             // Executa ambas as consultas
+            d.query(querySelectRolesForaServico, function(err, ForaServico) {
+                if (err) throw err;
+            d.query(querySelectRolesEmServico, function(err, EmServico) {
+                if (err) throw err;
             d.query(querySelectTrue, function(err, resultsTrue) {
                 if (err) throw err;
             
                 d.query(querySelectFalse, function(err, resultsFalse) {
                     if (err) throw err;
-            
+                    const roleForaServico = interaction.guild.roles.cache.get(ForaServico[0].id)
+                    const roleEmServico = interaction.guild.roles.cache.get(EmServico[0].id)
                     const embed = new EmbedBuilder()
                         .setColor('#313338')
                         .setTitle(':lab_tarf: LISTA DE REGISTROS DE BATE-PONTO')
                         .setDescription(`
-                            :bolinhaverde: **EM SERVIÇO**:\n
+                            :bolinhaverde: ${roleEmServico.members.size} **EM SERVIÇO**:\n
                             ${formatDescription(resultsTrue, 'em serviço')}
                             
-                            :bolinhavermelha: **FORA DE SERVIÇO**:\n
+                            :bolinhavermelha: ${roleForaServico.members.size} **FORA DE SERVIÇO**:\n
                             ${formatDescription(resultsFalse, 'fora de serviço', true)}
                         `);
             
                     interaction.reply({ embeds: [embed], ephemeral: true });
                 });
             });
-            
-        }
+        })
+        
+    })
+    }
     });
 
 
