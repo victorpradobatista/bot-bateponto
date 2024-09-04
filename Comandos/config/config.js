@@ -30,7 +30,6 @@ module.exports = {
             .setTitle(`Config | ${interaction.guild.name}`)
             .setDescription(`**Bem vindo ao painel de configuração!** \n # Aqui você pode configurar **todas** as funções do bot.`)
             .setColor(config.color)
-
         const select = new StringSelectMenuBuilder()
             .setCustomId('configselect')
             .setPlaceholder('Selecione a aba')

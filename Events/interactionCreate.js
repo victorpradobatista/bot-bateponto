@@ -2,6 +2,7 @@ const Discord = require('discord.js')
 const config = require('../config.json')
 const mysql = require('mysql')
 const transcript = require('discord-html-transcripts')
+const moment = require('moment')
 const { EmbedBuilder, ButtonBuilder, ButtonStyle, ActionRowBuilder, ModalBuilder, TextInputBuilder, TextInputStyle, ChannelType, PermissionFlagsBits } = require('discord.js');
 
 function formatMilliseconds(ms) {
@@ -73,6 +74,10 @@ module.exports = async (client, interaction) => {
                     const tempoAgora = new Date().getTime()
                     const tempoConta = result[0].tempoinc
                     const total = (parseInt(tempoAgora) - tempoConta)
+
+                    moment.locale('pt-br');
+                    const time = moment().format('LLLL')
+                    
                     const total2 = parseInt(result[0].tempototal) + parseInt(total)
                     console.log('Total: ' + total)
                     const queryUpdate4 = `UPDATE bateponto SET tempototal = '${total2}' WHERE id = '${interaction.user.id}'`
@@ -97,7 +102,12 @@ module.exports = async (client, interaction) => {
                     
                     const timeString = `${day} de ${month} às ${hours}:${minutes}`;
 
-                    const embedFinalizou = new EmbedBuilder().setColor('#313338').setDescription(`:bolinhavermelha:  O seu expediente  acaba de **TERMINOU**.\n\n:data: **Fim de expediente:** ${timeString} \n\n:relogio~3: **Tempo total deste expediente:** ${formatMilliseconds(total)}`)
+                    const hoje = new Date();
+                    const inicioDoDia = new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate());
+                    const newTInicioDoDia = Math.floor(inicioDoDia.getTime() / 1000);
+                    const newTAtual = Math.floor(hoje.getTime() / 1000);
+
+                    const embedFinalizou = new EmbedBuilder().setColor('#313338').setDescription(`:bolinhavermelha:  O seu expediente  acaba de **TERMINOU**.\n\n:data: **Fim de expediente:** <t:${newTAtual}:f> \n\n:relogio~3: **Tempo total deste expediente:** ${formatMilliseconds(total)}`)
                     interaction.reply({embeds:[embedFinalizou], ephemeral: true})
                     const selectLog = `SELECT * FROM logs WHERE tipo = 'cargo_em_servico'`
                     const selectLog2 = `SELECT * FROM logs WHERE tipo = 'cargo_fora_servico'`
@@ -144,12 +154,15 @@ module.exports = async (client, interaction) => {
                         const month = months[date.getMonth()];
                         const hours = date.getHours().toString().padStart(2, '0'); // Adiciona zero à esquerda se necessário
                         const minutes = date.getMinutes().toString().padStart(2, '0'); // Adiciona zero à esquerda se necessário
-                        
                         const timeString = `${day} de ${month} às ${hours}:${minutes}`;
+                        const hoje = new Date();
+                        const inicioDoDia = new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate());
+                        const newTInicioDoDia = Math.floor(inicioDoDia.getTime() / 1000);
+                        const newTAtual = Math.floor(hoje.getTime() / 1000);
 
                             const embedTeste = new EmbedBuilder()
                             .setTitle(`📤 Sistema de controle de serviço`)
-                            .setDescription(`**<:emojipessoabranco:1142035599105216512> | Usuário:**\n> <@${interaction.user.id}> / ${interaction.user.username}#${interaction.user.discriminator} \n\n**<a:data:1142034461928718337> | Iniciou o ponto:** \n> ${resultLog[0].horarioformatado} \n\n**📤 | Finalizou o ponto:**\n> ${timeString}\n\n**⏰ | Tempo de Expediente:**\n> ${formatMilliseconds(total)}`)
+                            .setDescription(`**<:emojipessoabranco:1142035599105216512> | Usuário:**\n> <@${interaction.user.id}> / ${interaction.user.username}#${interaction.user.discriminator} \n\n**<a:data:1142034461928718337> | Iniciou o ponto:** \n> <t:${resultLog[0].horarioformatado}:f> \n\n**📤 | Finalizou o ponto:**\n> <t:${newTAtual}:f>\n\n**⏰ | Tempo de Expediente:**\n> ${formatMilliseconds(total)}`)
                             .setColor('#DD2E44')
                             .setThumbnail(interaction.user.displayAvatarURL({ dinamyc: true, size: 2048, format: 'png' }))
                             .setFooter({ iconURL: interaction.guild.iconURL({ dynamic: true }), text: (`${interaction.guild.name} - Todos os direitos reservados.`) })
@@ -237,16 +250,19 @@ module.exports = async (client, interaction) => {
                     "julho", "agosto", "setembro", "outubro", "novembro", "dezembro"
                     ];
 
-                
+                    
                     const day = date.getDate();
                     const month = months[date.getMonth()];
                     const hours = date.getHours().toString().padStart(2, '0'); 
                     const minutes = date.getMinutes().toString().padStart(2, '0'); 
 
                     const timeString = `${day} de ${month} às ${hours}:${minutes}`;
+                    const hoje = new Date();
+                    const inicioDoDia = new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate());
+                    const newTInicioDoDia = Math.floor(inicioDoDia.getTime() / 1000);
+                    const newTAtual = Math.floor(hoje.getTime() / 1000);
 
-
-                    const embedE = new EmbedBuilder().setColor('#313338').setDescription(`:snt_ping:  O seu expediente acaba de **INICIAR**.\n\n:data: **Início de expediente:** ${timeString}`)
+                    const embedE = new EmbedBuilder().setColor('#313338').setDescription(`:snt_ping:  O seu expediente acaba de **INICIAR**.\n\n:data: **Início de expediente:** <t:${newTAtual}:f>`)
 
                     interaction.reply({embeds:[embedE], ephemeral: true})
                     const membro = interaction.guild.members.cache.get(interaction.user.id)
@@ -290,14 +306,18 @@ module.exports = async (client, interaction) => {
                         const minutes = date.getMinutes().toString().padStart(2, '0'); // Adiciona zero à esquerda se necessário
                         
                         const timeString = `${day} de ${month} às ${hours}:${minutes}`;
+                        const hoje = new Date();
+                        const inicioDoDia = new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate());
+                        const newTInicioDoDia = Math.floor(inicioDoDia.getTime() / 1000);
+                        const newTAtual = Math.floor(hoje.getTime() / 1000);
 
-                        const updateTime = `UPDATE bateponto SET horarioformatado = '${timeString}' WHERE id = '${interaction.user.id}'`
+                        const updateTime = `UPDATE bateponto SET horarioformatado = '${newTAtual}' WHERE id = '${interaction.user.id}'`
 
                         d.query(updateTime)
 
                         const embedLog = new EmbedBuilder()
                         .setTitle(`📥 Sistema de controle de serviço`)
-                        .setDescription(`**<:emojipessoabranco:1142035599105216512> | Usuário:**\n> <@${interaction.user.id}> / ${interaction.user.username}#${interaction.user.discriminator} \n\n**<a:data:1142034461928718337> | Iniciou o ponto:** \n> ${timeString} \n\n**📤 | Finalizou o ponto:**\n> <a:loading:1141775790518833263>\n\n**⏰ | Tempo de Expediente:**\n> <a:loading:1141775790518833263>`)
+                        .setDescription(`**<:emojipessoabranco:1142035599105216512> | Usuário:**\n> <@${interaction.user.id}> / ${interaction.user.username}#${interaction.user.discriminator} \n\n**<a:data:1142034461928718337> | Iniciou o ponto:** \n> <t:${newTAtual}:f> \n\n**📤 | Finalizou o ponto:**\n> <a:loading:1141775790518833263>\n\n**⏰ | Tempo de Expediente:**\n> <a:loading:1141775790518833263>`)
                         .setColor('#77B255')
                         .setThumbnail(interaction.user.displayAvatarURL({ dinamyc: true, size: 2048, format: 'png' }))
                         .setFooter({ iconURL: interaction.guild.iconURL({ dynamic: true }), text: (`${interaction.guild.name} - Todos os direitos reservados.`) })
@@ -316,7 +336,7 @@ module.exports = async (client, interaction) => {
                     if(err) throw err;
                     const embedError = new EmbedBuilder()
                     .setColor('#313338')
-                    .setDescription(`<a:negado:1142675449751814275> Você já se encontra de serviço, neste momento.\n\n<a:data:1142034461928718337> **Início de expediente:** ${result[0].horarioformatado}.`)
+                    .setDescription(`<a:negado:1142675449751814275> Você já se encontra de serviço, neste momento.\n\n<a:data:1142034461928718337> **Início de expediente:** <t:${result[0].horarioformatado}:f>.`)
 
                     interaction.reply({embeds:[embedError], ephemeral: true})
                 })
