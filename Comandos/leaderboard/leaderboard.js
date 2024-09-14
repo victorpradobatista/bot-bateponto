@@ -47,7 +47,7 @@ module.exports = {
             return interaction.reply({ content: 'Você não tem permissão para usar este comando.', ephemeral: true });
         }
 
-        d.query(`SELECT * FROM bateponto ORDER BY tempototal DESC`, function (err, results) {
+        d.query(`SELECT * FROM bateponto ORDER BY CAST(tempototal AS INTEGER) DESC;`, function (err, results) {
             if (err) {
                 console.error(err);
                 return interaction.reply({ content: 'Houve um erro ao acessar a base de dados.', ephemeral: true });
